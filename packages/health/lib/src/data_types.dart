@@ -34,6 +34,10 @@ enum HealthDataType {
   SLEEP_IN_BED,
   SLEEP_ASLEEP,
   SLEEP_AWAKE,
+  SLEEP_ASLEEP_CORE,
+  SLEEP_ASLEEP_DEEP,
+  SLEEP_ASLEEP_REM,
+  SLEEP_ASLEEP_UNSPECIFIED,
   EXERCISE_TIME,
   WORKOUT,
   HEADACHE_NOT_PRESENT,
@@ -89,7 +93,10 @@ const List<HealthDataType> _dataTypeKeysIOS = [
   HealthDataType.MINDFULNESS,
   HealthDataType.SLEEP_IN_BED,
   HealthDataType.SLEEP_AWAKE,
-  HealthDataType.SLEEP_ASLEEP,
+  HealthDataType.SLEEP_ASLEEP_CORE,
+  HealthDataType.SLEEP_ASLEEP_DEEP,
+  HealthDataType.SLEEP_ASLEEP_REM,
+  HealthDataType.SLEEP_ASLEEP_UNSPECIFIED,
   HealthDataType.WATER,
   HealthDataType.EXERCISE_TIME,
   HealthDataType.WORKOUT,
@@ -157,6 +164,10 @@ const Map<HealthDataType, HealthDataUnit> _dataTypeToUnit = {
   HealthDataType.SLEEP_IN_BED: HealthDataUnit.MINUTE,
   HealthDataType.SLEEP_ASLEEP: HealthDataUnit.MINUTE,
   HealthDataType.SLEEP_AWAKE: HealthDataUnit.MINUTE,
+  HealthDataType.SLEEP_ASLEEP_CORE: HealthDataUnit.MINUTE,
+  HealthDataType.SLEEP_ASLEEP_DEEP: HealthDataUnit.MINUTE,
+  HealthDataType.SLEEP_ASLEEP_REM: HealthDataUnit.MINUTE,
+  HealthDataType.SLEEP_ASLEEP_UNSPECIFIED: HealthDataUnit.MINUTE,
   HealthDataType.MINDFULNESS: HealthDataUnit.MINUTE,
   HealthDataType.EXERCISE_TIME: HealthDataUnit.MINUTE,
   HealthDataType.WORKOUT: HealthDataUnit.NO_UNIT,
@@ -174,10 +185,7 @@ const Map<HealthDataType, HealthDataUnit> _dataTypeToUnit = {
   HealthDataType.HEART_RATE_VARIABILITY_SDNN: HealthDataUnit.MILLISECOND,
 };
 
-const PlatformTypeJsonValue = {
-  PlatformType.IOS: 'ios',
-  PlatformType.ANDROID: 'android'
-};
+const PlatformTypeJsonValue = {PlatformType.IOS: 'ios', PlatformType.ANDROID: 'android'};
 
 /// List of all [HealthDataUnit]s.
 enum HealthDataUnit {

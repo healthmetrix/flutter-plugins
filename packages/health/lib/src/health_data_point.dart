@@ -47,9 +47,13 @@ class HealthDataPoint {
       healthValue = NumericHealthValue.fromJson(json['value']);
     }
 
+    var healthDataType = HealthDataType.values.firstWhere((element) => element.typeToString() == json['data_type']);
+    if (Platform.isIOS && healthDataType == HealthDataType.SLEEP_ASLEEP){
+      healthDataType = HealthDataType.SLEEP_ASLEEP_UNSPECIFIED;
+    }
     return HealthDataPoint(
         healthValue,
-        HealthDataType.values.firstWhere((element) => element.typeToString() == json['data_type']),
+        healthDataType,
         HealthDataUnit.values.firstWhere((element) => element.typeToString() == json['unit']),
         DateTime.parse(json['date_from']),
         DateTime.parse(json['date_to']),
