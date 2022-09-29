@@ -8,15 +8,13 @@ class HealthException implements Exception {
 
   HealthException(this.dataType, this.cause);
 
-  String toString() =>
-      "Error requesting health data type '$dataType' - cause: $cause";
+  String toString() => "Error requesting health data type '$dataType' - cause: $cause";
 }
 
 /// Extracts the string value from an enum
 String _enumToString(enumItem) => enumItem.toString().split('.').last;
 
-extension HealthWorkoutActivityTypeToStringExtension
-    on HealthWorkoutActivityType {
+extension HealthWorkoutActivityTypeToStringExtension on HealthWorkoutActivityType {
   /// Returns the string representation of the enum
   /// e.g. [HealthWorkoutActivityType.CYCLING] -> 'CYCLING'
   String typeToString() => _enumToString(this);
