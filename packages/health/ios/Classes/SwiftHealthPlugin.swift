@@ -758,7 +758,6 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
             dataTypesDict[SLEEP_ASLEEP_CORE] = HKSampleType.categoryType(forIdentifier: .sleepAnalysis)!
             dataTypesDict[SLEEP_ASLEEP_DEEP] = HKSampleType.categoryType(forIdentifier: .sleepAnalysis)!
             dataTypesDict[SLEEP_ASLEEP_REM] = HKSampleType.categoryType(forIdentifier: .sleepAnalysis)!
-            //            dataTypesDict[SLEEP_ASLEEP_UNSPECIFIED] = HKSampleType.categoryType(forIdentifier: .sleepAnalysis)!
         }
         
         // Set up heart rate data types specific to the apple watch, requires iOS 12
