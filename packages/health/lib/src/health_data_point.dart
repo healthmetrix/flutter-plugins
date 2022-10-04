@@ -14,8 +14,17 @@ class HealthDataPoint {
   String _sourceId;
   String _sourceName;
 
-  HealthDataPoint(this._value, this._type, this._unit, this._dateFrom, this._dateTo, this._platform, this._deviceId,
-      this._deviceModel, this._sourceId, this._sourceName) {
+  HealthDataPoint(
+      this._value,
+      this._type,
+      this._unit,
+      this._dateFrom,
+      this._dateTo,
+      this._platform,
+      this._deviceId,
+      this._deviceModel,
+      this._sourceId,
+      this._sourceName) {
     // set the value to minutes rather than the category
     // returned by the native API
     if (type == HealthDataType.MINDFULNESS ||
@@ -26,7 +35,11 @@ class HealthDataPoint {
         type == HealthDataType.HEADACHE_SEVERE ||
         type == HealthDataType.SLEEP_IN_BED ||
         type == HealthDataType.SLEEP_ASLEEP ||
-        type == HealthDataType.SLEEP_AWAKE) {
+        type == HealthDataType.SLEEP_AWAKE ||
+        type == HealthDataType.SLEEP_ASLEEP_CORE ||
+        type == HealthDataType.SLEEP_ASLEEP_DEEP ||
+        type == HealthDataType.SLEEP_ASLEEP_REM ||
+        type == HealthDataType.SLEEP_ASLEEP_UNSPECIFIED) {
       this._value = _convertMinutes();
     }
   }
@@ -47,17 +60,21 @@ class HealthDataPoint {
       healthValue = NumericHealthValue.fromJson(json['value']);
     }
 
-    var healthDataType = HealthDataType.values.firstWhere((element) => element.typeToString() == json['data_type']);
-    if (Platform.isIOS && healthDataType == HealthDataType.SLEEP_ASLEEP){
+    var healthDataType = HealthDataType.values
+        .firstWhere((element) => element.typeToString() == json['data_type']);
+    if (Platform.isIOS && healthDataType == HealthDataType.SLEEP_ASLEEP) {
       healthDataType = HealthDataType.SLEEP_ASLEEP_UNSPECIFIED;
     }
     return HealthDataPoint(
         healthValue,
         healthDataType,
-        HealthDataUnit.values.firstWhere((element) => element.typeToString() == json['unit']),
+        HealthDataUnit.values
+            .firstWhere((element) => element.typeToString() == json['unit']),
         DateTime.parse(json['date_from']),
         DateTime.parse(json['date_to']),
-        PlatformTypeJsonValue.keys.toList()[PlatformTypeJsonValue.values.toList().indexOf(json['platform_type'])],
+        PlatformTypeJsonValue.keys.toList()[PlatformTypeJsonValue.values
+            .toList()
+            .indexOf(json['platform_type'])],
         json['device_id'],
         json['device_model'],
         json['source_id'],
@@ -143,6 +160,6 @@ class HealthDataPoint {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(value, unit, dateFrom, dateTo, type, platform, deviceId, deviceModel, sourceId, sourceName);
+  int get hashCode => Object.hash(value, unit, dateFrom, dateTo, type, platform,
+      deviceId, deviceModel, sourceId, sourceName);
 }
