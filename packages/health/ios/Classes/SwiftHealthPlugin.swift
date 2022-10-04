@@ -184,7 +184,7 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
                     result(success)
                     return
                 }
-            }else{
+            } else {
                 result(nil)
                 return
             }
