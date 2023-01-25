@@ -15,12 +15,14 @@ class HealthFactory {
   String? _deviceId;
   final _deviceInfo = DeviceInfoPlugin();
 
-  static PlatformType _platformType = Platform.isAndroid ? PlatformType.ANDROID : PlatformType.IOS;
+  static PlatformType _platformType =
+      Platform.isAndroid ? PlatformType.ANDROID : PlatformType.IOS;
 
   /// Check if a given data type is available on the platform
-  bool isDataTypeAvailable(HealthDataType dataType) => _platformType == PlatformType.ANDROID
-      ? _dataTypeKeysAndroid.contains(dataType)
-      : _dataTypeKeysIOS.contains(dataType);
+  bool isDataTypeAvailable(HealthDataType dataType) =>
+      _platformType == PlatformType.ANDROID
+          ? _dataTypeKeysAndroid.contains(dataType)
+          : _dataTypeKeysIOS.contains(dataType);
 
   static List<HealthDataType> get allSupportedHealthDataTypes => Platform.isIOS ? _dataTypeKeysIOS : _dataTypeKeysAndroid;
 
@@ -47,13 +49,16 @@ class HealthFactory {
   ///   with a READ or READ_WRITE access.
   ///
   ///   On Android, this function returns true or false, depending on whether the specified access right has been granted.
-  static Future<bool?> hasPermissions(List<HealthDataType> types, {List<HealthDataAccess>? permissions}) async {
+  static Future<bool?> hasPermissions(List<HealthDataType> types,
+      {List<HealthDataAccess>? permissions}) async {
     if (permissions != null && permissions.length != types.length)
-      throw ArgumentError("The lists of types and permissions must be of same length.");
+      throw ArgumentError(
+          "The lists of types and permissions must be of same length.");
 
     final mTypes = List<HealthDataType>.from(types, growable: true);
     final mPermissions = permissions == null
-        ? List<int>.filled(types.length, HealthDataAccess.READ.index, growable: true)
+        ? List<int>.filled(types.length, HealthDataAccess.READ.index,
+            growable: true)
         : permissions.map((permission) => permission.index).toList();
 
     /// On Android, if BMI is requested, then also ask for weight and height
@@ -94,20 +99,34 @@ class HealthFactory {
     List<HealthDataAccess>? permissions,
   }) async {
     if (permissions != null && permissions.length != types.length) {
-      throw ArgumentError('The length of [types] must be same as that of [permissions].');
+      throw ArgumentError(
+          'The length of [types] must be same as that of [permissions].');
+    }
+
+    if (permissions != null) {
+      for (int i = 0; i < types.length; i++) {
+        final type = types[i];
+        final permission = permissions[i];
+        if (type == HealthDataType.ELECTROCARDIOGRAM &&
+            permission != HealthDataAccess.READ) {
+          throw ArgumentError(
+              'Requesting WRITE permission on ELECTROCARDIOGRAM is not allowed.');
+        }
+      }
     }
 
     final mTypes = List<HealthDataType>.from(types, growable: true);
     final mPermissions = permissions == null
-        ? List<int>.filled(types.length, HealthDataAccess.READ.index, growable: true)
+        ? List<int>.filled(types.length, HealthDataAccess.READ.index,
+            growable: true)
         : permissions.map((permission) => permission.index).toList();
 
     // on Android, if BMI is requested, then also ask for weight and height
     if (_platformType == PlatformType.ANDROID) _handleBMI(mTypes, mPermissions);
 
     List<String> keys = mTypes.map((e) => _enumToString(e)).toList();
-    final bool? isAuthorized =
-        await _channel.invokeMethod('requestAuthorization', {'types': keys, "permissions": mPermissions});
+    final bool? isAuthorized = await _channel.invokeMethod(
+        'requestAuthorization', {'types': keys, "permissions": mPermissions});
     return isAuthorized ?? false;
   }
 
@@ -129,25 +148,40 @@ class HealthFactory {
   }
 
   /// Calculate the BMI using the last observed height and weight values.
-  Future<List<HealthDataPoint>> _computeAndroidBMI(DateTime startTime, DateTime endTime) async {
-    List<HealthDataPoint> heights = await _prepareQuery(startTime, endTime, HealthDataType.HEIGHT);
+  Future<List<HealthDataPoint>> _computeAndroidBMI(
+      DateTime startTime, DateTime endTime) async {
+    List<HealthDataPoint> heights =
+        await _prepareQuery(startTime, endTime, HealthDataType.HEIGHT);
 
     if (heights.isEmpty) {
       return [];
     }
 
-    List<HealthDataPoint> weights = await _prepareQuery(startTime, endTime, HealthDataType.WEIGHT);
+    List<HealthDataPoint> weights =
+        await _prepareQuery(startTime, endTime, HealthDataType.WEIGHT);
 
-    double h = (heights.last.value as NumericHealthValue).numericValue.toDouble();
+    double h =
+        (heights.last.value as NumericHealthValue).numericValue.toDouble();
 
     const dataType = HealthDataType.BODY_MASS_INDEX;
     final unit = _dataTypeToUnit[dataType]!;
 
     final bmiHealthPoints = <HealthDataPoint>[];
     for (var i = 0; i < weights.length; i++) {
-      final bmiValue = (weights[i].value as NumericHealthValue).numericValue.toDouble() / (h * h);
-      final x = HealthDataPoint(NumericHealthValue(bmiValue), dataType, unit, weights[i].dateFrom, weights[i].dateTo,
-          _platformType, _deviceId!, null, '', '');
+      final bmiValue =
+          (weights[i].value as NumericHealthValue).numericValue.toDouble() /
+              (h * h);
+      final x = HealthDataPoint(
+          NumericHealthValue(bmiValue),
+          dataType,
+          unit,
+          weights[i].dateFrom,
+          weights[i].dateTo,
+          _platformType,
+          _deviceId!,
+          null,
+          '',
+          '');
 
       bmiHealthPoints.add(x);
     }
@@ -176,13 +210,18 @@ class HealthFactory {
     HealthDataUnit? unit,
   }) async {
     if (type == HealthDataType.WORKOUT)
-      throw ArgumentError("Adding workouts should be done using the writeWorkoutData method.");
-    if (startTime.isAfter(endTime)) throw ArgumentError("startTime must be equal or earlier than endTime");
-    if ([
+      throw ArgumentError(
+          "Adding workouts should be done using the writeWorkoutData method.");
+    if (startTime.isAfter(endTime))
+      throw ArgumentError("startTime must be equal or earlier than endTime");
+    if ({
       HealthDataType.HIGH_HEART_RATE_EVENT,
       HealthDataType.LOW_HEART_RATE_EVENT,
-      HealthDataType.IRREGULAR_HEART_RATE_EVENT
-    ].contains(type)) throw ArgumentError("$type - iOS doesnt support writing this data type in HealthKit");
+      HealthDataType.IRREGULAR_HEART_RATE_EVENT,
+      HealthDataType.ELECTROCARDIOGRAM,
+    }.contains(type))
+      throw ArgumentError(
+          "$type - iOS doesnt support writing this data type in HealthKit");
 
     // Assign default unit if not specified
     unit ??= _dataTypeToUnit[type]!;
@@ -229,16 +268,26 @@ class HealthFactory {
   ///   + It must be equal to or later than [startTime].
   ///   + Simply set [endTime] equal to [startTime] if the audiogram is measured only at a specific point in time.
   /// * [metadata] - optional map of keys, both HKMetadataKeyExternalUUID and HKMetadataKeyDeviceName are required
-  Future<bool> writeAudiogram(List<double> frequencies, List<double> leftEarSensitivities,
-      List<double> rightEarSensitivities, DateTime startTime, DateTime endTime,
+  Future<bool> writeAudiogram(
+      List<double> frequencies,
+      List<double> leftEarSensitivities,
+      List<double> rightEarSensitivities,
+      DateTime startTime,
+      DateTime endTime,
       {Map<String, dynamic>? metadata}) async {
-    if (frequencies.isEmpty || leftEarSensitivities.isEmpty || rightEarSensitivities.isEmpty)
-      throw ArgumentError("frequencies, leftEarSensitivities and rightEarSensitivities can't be empty");
+    if (frequencies.isEmpty ||
+        leftEarSensitivities.isEmpty ||
+        rightEarSensitivities.isEmpty)
+      throw ArgumentError(
+          "frequencies, leftEarSensitivities and rightEarSensitivities can't be empty");
     if (frequencies.length != leftEarSensitivities.length ||
         rightEarSensitivities.length != leftEarSensitivities.length)
-      throw ArgumentError("frequencies, leftEarSensitivities and rightEarSensitivities need to be of the same length");
-    if (startTime.isAfter(endTime)) throw ArgumentError("startTime must be equal or earlier than endTime");
-    if (_platformType == PlatformType.ANDROID) throw UnsupportedError("writeAudiogram is not supported on Android");
+      throw ArgumentError(
+          "frequencies, leftEarSensitivities and rightEarSensitivities need to be of the same length");
+    if (startTime.isAfter(endTime))
+      throw ArgumentError("startTime must be equal or earlier than endTime");
+    if (_platformType == PlatformType.ANDROID)
+      throw UnsupportedError("writeAudiogram is not supported on Android");
     Map<String, dynamic> args = {
       'frequencies': frequencies,
       'leftEarSensitivities': leftEarSensitivities,
@@ -274,7 +323,8 @@ class HealthFactory {
   }
 
   /// Prepares a query, i.e. checks if the types are available, etc.
-  Future<List<HealthDataPoint>> _prepareQuery(DateTime startTime, DateTime endTime, HealthDataType dataType) async {
+  Future<List<HealthDataPoint>> _prepareQuery(
+      DateTime startTime, DateTime endTime, HealthDataType dataType) async {
     // Ask for device ID only once
     _deviceId ??= _platformType == PlatformType.ANDROID
         ? (await _deviceInfo.androidInfo).id
@@ -282,18 +332,21 @@ class HealthFactory {
 
     // If not implemented on platform, throw an exception
     if (!isDataTypeAvailable(dataType)) {
-      throw HealthException(dataType, 'Not available on platform $_platformType');
+      throw HealthException(
+          dataType, 'Not available on platform $_platformType');
     }
 
     // If BodyMassIndex is requested on Android, calculate this manually
-    if (dataType == HealthDataType.BODY_MASS_INDEX && _platformType == PlatformType.ANDROID) {
+    if (dataType == HealthDataType.BODY_MASS_INDEX &&
+        _platformType == PlatformType.ANDROID) {
       return _computeAndroidBMI(startTime, endTime);
     }
     return await _dataQuery(startTime, endTime, dataType);
   }
 
   /// The main function for fetching health data
-  Future<List<HealthDataPoint>> _dataQuery(DateTime startTime, DateTime endTime, HealthDataType dataType) async {
+  Future<List<HealthDataPoint>> _dataQuery(
+      DateTime startTime, DateTime endTime, HealthDataType dataType) async {
     final args = <String, dynamic>{
       'dataTypeKey': dataType.typeToString(),
       'dataUnitKey': _dataTypeToUnit[dataType]!.typeToString(),
@@ -331,6 +384,8 @@ class HealthFactory {
         value = AudiogramHealthValue.fromJson(e);
       } else if (dataType == HealthDataType.WORKOUT) {
         value = WorkoutHealthValue.fromJson(e);
+      } else if (dataType == HealthDataType.ELECTROCARDIOGRAM) {
+        value = ElectrocardiogramHealthValue.fromJson(e);
       } else {
         value = NumericHealthValue(e['value']);
       }
