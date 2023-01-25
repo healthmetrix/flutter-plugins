@@ -2,10 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:permission_handler/permission_handler.dart';
-
 import 'package:flutter/material.dart';
 import 'package:health/health.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 
 void main() => runApp(HealthApp());
@@ -52,15 +51,16 @@ class _HealthAppState extends State<HealthApp> {
     // needed, since we only want READ access.
     bool requested =
         await health.requestAuthorization(types, permissions: permissions);
+    print('requested: $requested');
+
+    // If we are trying to read Step Count, Workout, Sleep or other data that requires
+    // the ACTIVITY_RECOGNITION permission, we need to request the permission first.
+    // This requires a special request authorization call.
     //
-    // // If we are trying to read Step Count, Workout, Sleep or other data that requires
-    // // the ACTIVITY_RECOGNITION permission, we need to request the permission first.
-    // // This requires a special request authorization call.
-    // //
-    // // The location permission is requested for Workouts using the Distance information.
+    // The location permission is requested for Workouts using the Distance information.
     await Permission.activityRecognition.request();
     await Permission.location.request();
-    // final requested = true;
+
     if (requested) {
       try {
         // fetch health data
@@ -109,11 +109,10 @@ class _HealthAppState extends State<HealthApp> {
       HealthDataAccess.READ_WRITE,
       // HealthDataAccess.READ_WRITE,
     ];
-    late bool perm;
     bool? hasPermissions =
         await HealthFactory.hasPermissions(types, permissions: rights);
     if (hasPermissions == false) {
-      perm = await health.requestAuthorization(types, permissions: permissions);
+      await health.requestAuthorization(types, permissions: permissions);
     }
 
     // Store a count of steps taken
